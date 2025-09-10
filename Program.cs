@@ -16,7 +16,7 @@ namespace Soa_ApiRestFul_Multiplataforma
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // libreira swagger para documentar a api
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
