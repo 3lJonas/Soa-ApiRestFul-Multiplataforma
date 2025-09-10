@@ -1,0 +1,6 @@
+@Soa_ApiRestFul_Multiplataforma_HostAddress = http://localhost:5081
+
+GET {{Soa_ApiRestFul_Multiplataforma_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
