@@ -1,4 +1,8 @@
+using ApiPedidos.Data;
 using ApiPedidos.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 using System.Text;
 
