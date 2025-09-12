@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soa-ApiRestFul-Multiplataforma", "Soa-ApiRestFul-Multiplataforma.csproj", "{82A23D48-56B7-4F9A-9F07-F2E4AB033563}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiPedidos", "ApiPedidos\ApiPedidos.csproj", "{12C5A403-1339-495F-95B2-C39BCF200257}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiCliente", "ApiCliente\ApiCliente.csproj", "{0A24FBB1-6941-4B0D-BA8B-938256E7B067}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{82A23D48-56B7-4F9A-9F07-F2E4AB033563}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82A23D48-56B7-4F9A-9F07-F2E4AB033563}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82A23D48-56B7-4F9A-9F07-F2E4AB033563}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12C5A403-1339-495F-95B2-C39BCF200257}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12C5A403-1339-495F-95B2-C39BCF200257}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12C5A403-1339-495F-95B2-C39BCF200257}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12C5A403-1339-495F-95B2-C39BCF200257}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A24FBB1-6941-4B0D-BA8B-938256E7B067}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A24FBB1-6941-4B0D-BA8B-938256E7B067}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A24FBB1-6941-4B0D-BA8B-938256E7B067}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A24FBB1-6941-4B0D-BA8B-938256E7B067}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
