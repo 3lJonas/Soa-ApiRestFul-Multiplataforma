@@ -1,24 +1,81 @@
+using ApiPedidos.Middleware;
+
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// EF Core - SQL Server
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var cs = builder.Configuration.GetConnectionString("DefaultConnection")
+             ?? "Server=(localdb)\\MSSQLLocalDB;Database=PedidosDb;Trusted_Connection=True;TrustServerCertificate=True";
+    options.UseSqlServer(cs);
+});
+
+// Controllers
+builder.Services.AddControllers();
+
+// CORS (permitir a ClienteApi por defecto)
+builder.Services.AddCors(opt =>
+{
+    opt.AddDefaultPolicy(p =>
+        p.AllowAnyOrigin()
+         .AllowAnyHeader()
+         .AllowAnyMethod());
+});
+
+// JWT (opcional)
+var jwtEnabled = builder.Configuration.GetValue("Jwt:Enabled", false);
+if (jwtEnabled)
+{
+    var key = builder.Configuration["Jwt:Key"] ?? "DEV-KEY-CHANGE-ME";
+    var issuer = builder.Configuration["Jwt:Issuer"] ?? "PedidosApi";
+    var audience = builder.Configuration["Jwt:Audience"] ?? "PedidosConsumers";
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(opt =>
+        {
+            opt.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = issuer,
+                ValidAudience = audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+            };
+        });
+}
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Migrar BD al iniciar (para demo)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseCors();
 
-app.UseAuthorization();
+if (jwtEnabled)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
 
 app.MapControllers();
 
