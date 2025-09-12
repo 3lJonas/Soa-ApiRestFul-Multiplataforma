@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soa-ApiRestFul-Multiplatafo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiPedidos", "ApiPedidos\ApiPedidos.csproj", "{12C5A403-1339-495F-95B2-C39BCF200257}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiCliente", "..\ApiCliente\ApiCliente.csproj", "{3267DB1D-B0A4-409A-AE93-2A330BEBB0CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{12C5A403-1339-495F-95B2-C39BCF200257}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12C5A403-1339-495F-95B2-C39BCF200257}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12C5A403-1339-495F-95B2-C39BCF200257}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3267DB1D-B0A4-409A-AE93-2A330BEBB0CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3267DB1D-B0A4-409A-AE93-2A330BEBB0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3267DB1D-B0A4-409A-AE93-2A330BEBB0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3267DB1D-B0A4-409A-AE93-2A330BEBB0CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
