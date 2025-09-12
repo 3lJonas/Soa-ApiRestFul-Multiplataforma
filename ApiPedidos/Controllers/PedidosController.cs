@@ -1,5 +1,4 @@
-﻿using System;
-using ApiPedidos.Data;
+﻿using ApiPedidos.Data;
 using ApiPedidos.Dtos;
 using ApiPedidos.models;
 using Microsoft.AspNetCore.Mvc;
