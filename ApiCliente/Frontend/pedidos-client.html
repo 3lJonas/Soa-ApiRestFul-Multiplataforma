@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Pedidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding-bottom: 50px;
+        }
+        .container {
+            max-width: 900px;
+            margin-top: 30px;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .pedido-item {
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .pedido-item:hover {
+            background-color: #f8f9fa;
+        }
+        #jsonEditor {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            height: 150px;
+        }
+        .form-section {
+            transition: all 0.3s ease;
+        }
+        .json-section {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">Gestor de Pedidos</a>
+            <div class="d-flex align-items-center">
+                <small class="text-light me-2">API:</small>
+                <span id="api-status" class="badge bg-secondary">Verificando...</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Lista de Pedidos</h5>
+                        <button class="btn btn-primary btn-sm" id="btn-refresh">
+                            <i class="bi bi-arrow-clockwise"></i> Actualizar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-list" class="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </div>
+                        <div id="pedidos-list" class="list-group">
+                            <!-- Aquí se cargarán los pedidos -->
+                        </div>
+                        <div id="no-pedidos" class="alert alert-info" style="display: none;">
+                            No hay pedidos disponibles. Crea un nuevo pedido usando el formulario de abajo.
+                        </div>
+                        <div id="error-pedidos" class="alert alert-danger" style="display: none;">
+                            Error al cargar los pedidos. Por favor, intenta de nuevo más tarde.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Crear Nuevo Pedido</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="toggle-json">
+                            <label class="form-check-label" for="toggle-json">Usar JSON</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="form-section" class="form-section">
+                            <!-- Formulario con campos -->
+                            <form id="create-form">
+                                <div class="mb-3">
+                                    <label for="producto" class="form-label">Producto</label>
+                                    <input type="text" class="form-control" id="producto" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cantidad" class="form-label">Cantidad</label>
+                                    <input type="number" class="form-control" id="cantidad" min="1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="usuarioId" class="form-label">ID de Usuario</label>
+                                    <input type="number" class="form-control" id="usuarioId" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="usuarioNombre" class="form-label">Nombre de Usuario (opcional)</label>
+                                    <input type="text" class="form-control" id="usuarioNombre">
+                                </div>
+                                <button type="submit" class="btn btn-success">Crear Pedido</button>
+                            </form>
+                            <div id="form-result" class="alert mt-3" style="display: none;"></div>
+                        </div>
+                        
+                        <div id="json-section" class="json-section" style="display:none;">
+                            <!-- Entrada JSON -->
+                            <div class="mb-3">
+                                <label for="jsonEditor" class="form-label">JSON del pedido</label>
+                                <textarea class="form-control" id="jsonEditor" rows="7"></textarea>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary" id="btn-format">Formatear</button>
+                                <button class="btn btn-outline-secondary" id="btn-example">Ejemplo</button>
+                                <button class="btn btn-success ms-auto" id="btn-send-json">Crear Pedido</button>
+                            </div>
+                            <div id="json-result" class="alert mt-3" style="display: none;"></div>
+                            
+                            <div class="mt-4">
+                                <h6>Formato JSON Esperado:</h6>
+                                <pre class="bg-light p-3 rounded"><code>{
+  "producto": "laptop",
+  "cantidad": 1,
+  "usuarioId": 2,
+  "usuarioNombre": "Mateo"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles del pedido -->
+    <div class="modal fade" id="pedidoModal" tabindex="-1" aria-labelledby="pedidoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pedidoModalLabel">Detalle del Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="pedido-modal-body">
+                    <!-- Contenido del modal -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuración base
+        const apiBaseUrl = 'http://10.79.191.145:5000';
+        const pedidosPath = 'api/pedidos';
+
+        // Elementos del DOM
+        const apiStatus = document.getElementById('api-status');
+        const btnRefresh = document.getElementById('btn-refresh');
+        const loadingList = document.getElementById('loading-list');
+        const pedidosList = document.getElementById('pedidos-list');
+        const noPedidos = document.getElementById('no-pedidos');
+        const errorPedidos = document.getElementById('error-pedidos');
+        const createForm = document.getElementById('create-form');
+        const formResult = document.getElementById('form-result');
+        const jsonEditor = document.getElementById('jsonEditor');
+        const btnFormat = document.getElementById('btn-format');
+        const btnExample = document.getElementById('btn-example');
+        const btnSendJson = document.getElementById('btn-send-json');
+        const jsonResult = document.getElementById('json-result');
+        const toggleJson = document.getElementById('toggle-json');
+        const formSection = document.getElementById('form-section');
+        const jsonSection = document.getElementById('json-section');
+
+        // Ejemplo de JSON
+        const exampleJson = {
+            "producto": "laptop",
+            "cantidad": 1,
+            "usuarioId": 2,
+            "usuarioNombre": "Mateo"
+        };
+
+        // Verificar estado de la API
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/${pedidosPath}`, { 
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    apiStatus.className = 'badge bg-success';
+                    apiStatus.textContent = 'Conectado';
+                    return true;
+                } else {
+                    apiStatus.className = 'badge bg-warning text-dark';
+                    apiStatus.textContent = 'Error ' + response.status;
+                    return false;
+                }
+            } catch (error) {
+                apiStatus.className = 'badge bg-danger';
+                apiStatus.textContent = 'Desconectado';
+                console.error('Error de conexión con la API:', error);
+                return false;
+            }
+        }
+
+        // Formatear fecha
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleString();
+        }
+
+        // Mostrar mensaje
+        function showMessage(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `alert alert-${type} mt-3`;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // Mostrar/ocultar cargando
+        function toggleLoading(elementId, show = true) {
+            document.getElementById(elementId).style.display = show ? 'block' : 'none';
+        }
+
+        // Cargar lista de pedidos
+        async function loadPedidos() {
+            // Resetear la vista
+            pedidosList.innerHTML = '';
+            noPedidos.style.display = 'none';
+            errorPedidos.style.display = 'none';
+            toggleLoading('loading-list', true);
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/${pedidosPath}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error al cargar pedidos: ${response.status}`);
+                }
+                
+                let pedidos;
+                
+                try {
+                    // Intentar parsear la respuesta como JSON
+                    pedidos = await response.json();
+                    
+                    // Comprobar si pedidos es null, undefined, o no es un array
+                    if (!pedidos || !Array.isArray(pedidos)) {
+                        console.warn('La API devolvió un valor que no es un array:', pedidos);
+                        pedidos = []; // Convertir a array vacío para manejar uniformemente
+                    }
+                } catch (parseError) {
+                    console.error('Error al parsear la respuesta JSON:', parseError);
+                    // Si hay un error al parsear JSON, asumir que no hay pedidos
+                    pedidos = [];
+                }
+                
+                if (pedidos.length === 0) {
+                    // Mostrar mensaje de "no hay pedidos"
+                    noPedidos.style.display = 'block';
+                } else {
+                    // Mostrar los pedidos
+                    pedidos.forEach(pedido => {
+                        const element = document.createElement('a');
+                        element.href = '#';
+                        element.className = 'list-group-item list-group-item-action pedido-item';
+                        element.innerHTML = `
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Pedido #${pedido.id}</h5>
+                                <small>${formatDate(pedido.fechaCreacion)}</small>
+                            </div>
+                            <p class="mb-1"><strong>Producto:</strong> ${pedido.producto} - <strong>Cantidad:</strong> ${pedido.cantidad}</p>
+                            <small><strong>Usuario:</strong> ${pedido.usuarioNombre} (ID: ${pedido.usuarioId})</small>
+                        `;
+                        element.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            showPedidoDetails(pedido);
+                        });
+                        pedidosList.appendChild(element);
+                    });
+                }
+            } catch (error) {
+                // Mostrar mensaje de error
+                errorPedidos.textContent = `Error: ${error.message}`;
+                errorPedidos.style.display = 'block';
+                console.error('Error en loadPedidos:', error);
+            } finally {
+                toggleLoading('loading-list', false);
+            }
+        }
+
+        // Mostrar detalles del pedido en modal
+        function showPedidoDetails(pedido) {
+            const modalBody = document.getElementById('pedido-modal-body');
+            modalBody.innerHTML = `
+                <div class="card border-0">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Pedido #${pedido.id}</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Producto:</span>
+                                <strong>${pedido.producto}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Cantidad:</span>
+                                <strong>${pedido.cantidad}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Usuario:</span>
+                                <strong>${pedido.usuarioNombre} (ID: ${pedido.usuarioId})</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Fecha de creación:</span>
+                                <strong>${formatDate(pedido.fechaCreacion)}</strong>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            const pedidoModal = new bootstrap.Modal(document.getElementById('pedidoModal'));
+            pedidoModal.show();
+        }
+
+        // Crear pedido (desde formulario o JSON)
+        async function createPedido(data) {
+            try {
+                const response = await fetch(`${apiBaseUrl}/${pedidosPath}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    let errorText;
+                    try {
+                        errorText = await response.text();
+                    } catch (e) {
+                        errorText = `Error: ${response.status}`;
+                    }
+                    throw new Error(errorText || `Error: ${response.status}`);
+                }
+                
+                let result;
+                try {
+                    result = await response.json();
+                } catch (parseError) {
+                    console.error('Error al parsear respuesta JSON:', parseError);
+                    // Si no podemos parsear el JSON, pero la respuesta fue exitosa,
+                    // devolvemos un objeto con información básica
+                    result = { 
+                        id: 'Creado', 
+                        message: 'Pedido creado, pero no se pudo obtener detalles' 
+                    };
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Error en createPedido:', error);
+                throw error;
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar estado de la API al cargar
+            checkApiStatus();
+            
+            // Cargar pedidos al iniciar
+            loadPedidos();
+            
+            // Botón refrescar
+            btnRefresh.addEventListener('click', loadPedidos);
+            
+            // Toggle JSON/Form
+            toggleJson.addEventListener('change', function() {
+                if (this.checked) {
+                    formSection.style.display = 'none';
+                    jsonSection.style.display = 'block';
+                } else {
+                    formSection.style.display = 'block';
+                    jsonSection.style.display = 'none';
+                }
+            });
+            
+            // Formulario
+            createForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const usuarioId = document.getElementById('usuarioId').value;
+                const usuarioNombre = document.getElementById('usuarioNombre').value;
+                
+                if (!usuarioId) {
+                    showMessage('form-result', 'El ID de usuario es obligatorio', 'warning');
+                    return;
+                }
+                
+                const pedidoData = {
+                    producto: document.getElementById('producto').value,
+                    cantidad: parseInt(document.getElementById('cantidad').value),
+                    usuarioId: parseInt(usuarioId)
+                };
+                
+                // Añadir usuarioNombre si está presente
+                if (usuarioNombre) {
+                    pedidoData.usuarioNombre = usuarioNombre;
+                }
+                
+                try {
+                    const result = await createPedido(pedidoData);
+                    showMessage('form-result', `Pedido #${result.id} creado exitosamente`, 'success');
+                    createForm.reset();
+                    loadPedidos(); // Recargar lista
+                } catch (error) {
+                    showMessage('form-result', `Error: ${error.message}`, 'danger');
+                }
+            });
+            
+            // JSON - Botón formato
+            btnFormat.addEventListener('click', function() {
+                try {
+                    const jsonStr = jsonEditor.value.trim();
+                    if (jsonStr) {
+                        const obj = JSON.parse(jsonStr);
+                        jsonEditor.value = JSON.stringify(obj, null, 2);
+                        showMessage('json-result', 'JSON formateado correctamente', 'success');
+                    }
+                } catch (e) {
+                    showMessage('json-result', `Error de sintaxis JSON: ${e.message}`, 'danger');
+                }
+            });
+            
+            // JSON - Botón ejemplo
+            btnExample.addEventListener('click', function() {
+                jsonEditor.value = JSON.stringify(exampleJson, null, 2);
+            });
+            
+            // JSON - Botón enviar
+            btnSendJson.addEventListener('click', async function() {
+                const jsonStr = jsonEditor.value.trim();
+                if (!jsonStr) {
+                    showMessage('json-result', 'Por favor, introduce un JSON', 'warning');
+                    return;
+                }
+                
+                try {
+                    const pedidoData = JSON.parse(jsonStr);
+                    const result = await createPedido(pedidoData);
+                    showMessage('json-result', `Pedido #${result.id} creado exitosamente`, 'success');
+                    loadPedidos(); // Recargar lista
+                } catch (e) {
+                    showMessage('json-result', `Error: ${e.message}`, 'danger');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
